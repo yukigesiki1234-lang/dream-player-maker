@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>推し選手メーカー</title>
 <meta name="description" content="あなたの贔屓球団にほしい選手を自由に入力して、オリジナルカードを作ろう">
-<meta property="og:title" content="推し選手メーー">
+<meta property="og:title" content="推し選手メーカー">
 <meta property="og:description" content="あなたの贔屓球団にほしい選手を自由に入力して、オリジナルカードを作ろう">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
@@ -44,6 +44,20 @@
     </div>
 
     <div class="form-row">
+      <label>カードの色 <span class="optional">球団を選ぶと自動設定されます</span></label>
+      <div class="color-row">
+        <div>
+          <label for="color-start" style="font-size:0.82rem;font-weight:400;margin-bottom:0.3em;">開始色</label>
+          <input type="color" id="color-start" value="#1e4f30">
+        </div>
+        <div>
+          <label for="color-end" style="font-size:0.82rem;font-weight:400;margin-bottom:0.3em;">終了色</label>
+          <input type="color" id="color-end" value="#2d6e46">
+        </div>
+      </div>
+    </div>
+
+    <div class="form-row">
       <label for="player-name">選手名 <span class="optional">必須</span></label>
       <input type="text" id="player-name" placeholder="例：山田太郎" maxlength="16">
     </div>
@@ -75,7 +89,7 @@
 
     <div class="form-row">
       <label for="reason-text">獲得したい理由 <span class="optional">必須・80文字以内</span></label>
-      <textarea id="reason-text" maxlength="80" placeholder="この選手を球団にほし理由を書いてください"></textarea>
+      <textarea id="reason-text" maxlength="80" placeholder="この選手を球団にほしい理由を書いてください"></textarea>
       <div class="char-count"><span id="reason-count">0</span> / 80</div>
     </div>
 
@@ -150,7 +164,7 @@ const teams = {
   carp:     { name: "広島東洋カープ",           colors: ["#ce0f2c","#ffffff"], logo: "carp" },
   baystars: { name: "横浜DeNAベイスターズ",     colors: ["#00bfbf","#ffffff"], logo: "baystars" },
   hawks:    { name: "福岡ソフトバンクホークス", colors: ["#f5c800","#000000"], logo: "hawks" },
-  orix:     { name: "オックス・バファローズ", colors: ["#000040","#8c8c8c"], logo: "orix" },
+  orix:     { name: "オリックス・バファローズ", colors: ["#000040","#8c8c8c"], logo: "orix" },
   marines:  { name: "千葉ロッテマリーンズ",     colors: ["#000000","#c0c0c0"], logo: "marines" },
   lions:    { name: "埼玉西武ライオンズ",       colors: ["#0055a5","#ffffff"], logo: "lions" },
   eagles:   { name: "東北楽天ゴールデンイーグルス", colors: ["#900000","#ffffff"], logo: "eagles" },
@@ -174,6 +188,8 @@ const logos = {
 
 const els = {
   team: document.getElementById("team-select"),
+  colorStart: document.getElementById("color-start"),
+  colorEnd: document.getElementById("color-end"),
   playerName: document.getElementById("player-name"),
   position: document.getElementById("player-position"),
   imageInput: document.getElementById("player-image"),
@@ -194,20 +210,33 @@ const els = {
   logoWrap: document.getElementById("card-logo-wrap"),
 };
 
+function updateCardColor() {
+  const c1 = els.colorStart.value;
+  const c2 = els.colorEnd.value;
+  els.captureCard.style.background = `linear-gradient(135deg, ${c1} 0%, ${c2} 100%)`;
+}
+
+function applyTeamColor() {
+  const teamKey = els.team.value;
+  const team = teams[teamKey];
+  if (team) {
+    const c2 = (team.colors[1] === "#ffffff" || team.colors[1] === "#c0c0c0") ? "#2d6e46" : team.colors[1];
+    els.colorStart.value = team.colors[0];
+    els.colorEnd.value = c2;
+  }
+}
+
 function updateCard() {
   const teamKey = els.team.value;
   const team = teams[teamKey];
 
   if (team) {
     els.cardTeam.textContent = team.name;
-    const c2 = (team.colors[1] === "#ffffff" || team.colors[1] === "#c0c0c0") ? "#2d6e46" : team.colors[1];
-    els.captureCard.style.background = `linear-gradient(135deg, ${team.colors[0]} 0%, ${c2} 100%)`;
     if (logos[team.logo]) {
       els.logoWrap.innerHTML = logos[team.logo];
     }
   } else {
     els.cardTeam.textContent = "球団名";
-    els.captureCard.style.background = `linear-gradient(135deg, #1e4f30 0%, #2d6e46 100%)`;
     els.logoWrap.innerHTML = `<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="45" stroke="currentColor" stroke-width="4" fill="none" opacity="0.5"/><text x="50" y="58" text-anchor="middle" font-size="36" font-weight="900" fill="currentColor" font-family="Arial,sans-serif">⚾</text></svg>`;
   }
 
@@ -218,9 +247,18 @@ function updateCard() {
 
   const name = els.userName.value.trim();
   els.cardFooter.textContent = name ? `${name}の推し選手カード #推し選手メーカー` : "#推し選手メーカー";
+
+  updateCardColor();
 }
 
-els.team.addEventListener("change", updateCard);
+els.team.addEventListener("change", () => {
+  applyTeamColor();
+  updateCard();
+});
+
+els.colorStart.addEventListener("input", updateCardColor);
+els.colorEnd.addEventListener("input", updateCardColor);
+
 els.playerName.addEventListener("input", updateCard);
 els.position.addEventListener("change", updateCard);
 els.reason.addEventListener("input", () => {
@@ -297,6 +335,8 @@ document.getElementById("tweet-btn").addEventListener("click", () => {
 
 document.getElementById("reset-btn").addEventListener("click", () => {
   els.team.value = "";
+  els.colorStart.value = "#1e4f30";
+  els.colorEnd.value = "#2d6e46";
   els.playerName.value = "";
   els.position.value = "";
   els.imageInput.value = "";
