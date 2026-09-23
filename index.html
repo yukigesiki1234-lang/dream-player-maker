@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>推し選手メーカー</title>
+<meta name="description" content="あなたの贔屓球団にほしい選手を自由に入力して、オリジナルカードを作ろう">
+<meta property="og:title" content="推し選手メーカー">
+<meta property="og:description" content="あなたの贔屓球団にほしい選手を自由に入力して、オリジナルカードを作ろう">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="推し選手メーカー">
+<meta name="twitter:description" content="あなたの贔屓球団にほしい選手を自由に入力して、オリジナルカードを作ろう">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;900&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+:root {
+  --bg: #f0ece4;
+  --surface: #fffdf7;
+  --ink: #1e1e1e;
+  --muted: #6b6560;
+  --accent: #2d6e46;
+  --accent-dark: #1e4f30;
+  --accent-weak: color-mix(in oklab, var(--accent) 12%, var(--surface));
+  --line: color-mix(in oklab, var(--ink) 10%, transparent);
+  --step-0: clamp(0.9rem, 0.85rem + 0.25vw, 1.05rem);
+  --step-1: clamp(1rem, 0.9rem + 0.5vw, 1.25rem);
+  --step-2: clamp(1.3rem, 1.1rem + 1vw, 1.8rem);
+  --step-3: clamp(1.8rem, 1.4rem + 2vw, 2.6rem);
+  --space: clamp(1rem, 0.8rem + 1vw, 1.5rem);
+  --radius: 18px;
+  --shadow: 0 1px 2px rgba(0,0,0,0.04), 0 10px 30px -8px rgba(0,0,0,0.14);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: "Noto Sans JP", "Hiragino Sans", "Yu Gothic", sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  line-height: 1.8;
+  min-height: 100vh;
+  padding: var(--space);
+}
+
+header {
+  text-align: center;
+  margin-bottom: calc(var(--space) * 1.2);
+}
+
+header h1 {
+  font-family: "M PLUS Rounded 1c", "Hiragino Sans", sans-serif;
+  font-size: var(--step-3);
+  font-weight: 900;
+  color: var(--accent-dark);
+  line-height: 1.2;
+}
+
+header p {
+  color: var(--muted);
+  font-size: var(--step-0);
+  margin-top: 0.4em;
+}
+
+.maker-layout {
+  max-width: 980px;
+  margin: 0 auto;
+  display: grid;
+  gap: calc(var(--space) * 1.2);
+}
+
+@media (min-width: 880px) {
+  .maker-layout {
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+  }
+}
+
+.form-section {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: calc(var(--space) * 1.1) calc(var(--space));
+}
+
+.form-row + .form-row {
+  margin-top: 1.1em;
+}
+
+label {
+  display: block;
+  font-weight: 700;
+  font-size: 0.92rem;
+  margin-bottom: 0.4em;
+}
+
+label .optional {
+  font-weight: 400;
+  color: var(--muted);
+  font-size: 0.82em;
+  margin-left: 0.3em;
+}
+
+select,
+input[type="text"],
+textarea,
+input[type="file"] {
+  width: 100%;
+  padding: 0.75em 1em;
+  font-size: var(--step-0);
+  font-family: inherit;
+  border: 2px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+select:focus,
+input[type="text"]:focus,
+textarea:focus {
+  border-color: var(--accent);
+}
+
+textarea {
+  resize: vertical;
+  min-height: 4.5em;
+  line-height: 1.7;
+}
+
+input[type="file"] {
+  padding: 0.55em 0.8em;
+  font-size: 0.9rem;
+}
+
+.char-count {
+  text-align: right;
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin-top: 0.2em;
+}
+
+button {
+  font-family: "M PLUS Rounded 1c", "Hiragino Sans", sans-serif;
+  font-size: var(--step-0);
+  font-weight: 700;
+  border: none;
+  border-radius: 999px;
+  padding: 0.85em 2.2em;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+button:hover {
+  transform: translateY(-2px);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 4px 14px -4px var(--accent);
+  display: block;
+  width: 100%;
+  margin-top: 1.2em;
+}
+
+.btn-primary:hover {
+  background: var(--accent-dark);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--accent);
+  border: 2px solid var(--accent);
+}
+
+.btn-secondary:hover {
+  background: var(--accent-weak);
+}
+
+.preview-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(var(--space));
+}
+
+.preview-label {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--muted);
+  text-align: center;
+}
+
+#capture-card {
+  width: 100%;
+  max-width: 400px;
+  aspect-ratio: 9 / 16;
+  background: linear-gradient(135deg, #1e4f30 0%, #2d6e46 100%);
+  border-radius: 24px;
+  padding: 1.5em 1.3em;
+  color: #fff;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 16px 48px -12px rgba(0,0,0,0.35);
+  display: flex;
+  flex-direction: column;
+}
+
+#capture-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 20% 85%, rgba(255,255,255,0.07) 0%, transparent 45%),
+    radial-gradient(circle at 85% 15%, rgba(255,255,255,0.05) 0%, transparent 40%);
+  pointer-events: none;
+}
+
+.stitch-line {
+  position: absolute;
+  top: 10px;
+  left: 18px;
+  right: 18px;
+  height: 2px;
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(255,255,255,0.35) 0px,
+    rgba(255,255,255,0.35) 8px,
+    transparent 8px,
+    transparent 12px
+  );
+  pointer-events: none;
+}
+
+.card-inner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.card-logo-wrap {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 0.4em;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.18);
+  border: 2px solid rgba(255,255,255,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.card-logo-wrap svg {
+  width: 40px;
+  height: 40px;
+}
+
+.card-top-badge {
+  display: inline-flex;
+  align-self: center;
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 999px;
+  padding: 0.25em 0.9em;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.5em;
+  backdrop-filter: blur(4px);
+}
+
+.card-team-name {
+  font-family: "M PLUS Rounded 1c", sans-serif;
+  font-size: var(--step-1);
+  font-weight: 700;
+  line-height: 1.3;
+  margin-bottom: 0.1em;
+}
+
+.card-subtitle {
+  font-size: 0.78rem;
+  opacity: 0.85;
+  margin-bottom: 0.7em;
+}
+
+.card-image-wrap {
+  width: 150px;
+  height: 150px;
+  margin: 0 auto 0.8em;
+  border-radius: 50%;
+  border: 4px solid rgba(255,255,255,0.85);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.25), inset 0 0 0 1px rgba(255,255,255,0.3);
+  overflow: hidden;
+  background: rgba(255,255,255,0.1);
+  flex-shrink: 0;
+}
+
+.card-image-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.card-image-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  opacity: 0.7;
+  line-height: 1.4;
+  padding: 1em;
+}
+
+.card-position {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.8;
+  margin-bottom: 0.15em;
+}
+
+.card-player-name {
+  font-family: "M PLUS Rounded 1c", sans-serif;
+  font-size: var(--step-3);
+  font-weight: 900;
+  line-height: 1.15;
+  margin-bottom: 0.4em;
+  overflow-wrap: break-word;
+}
+
+.card-divider {
+  width: 50px;
+  height: 3px;
+  background: rgba(255,255,255,0.5);
+  border-radius: 999px;
+  margin: 0 auto 0.6em;
+}
+
+.card-reason-title,
+.card-expect-title {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  opacity: 0.75;
+  margin-bottom: 0.15em;
+}
+
+.card-reason {
+  font-size: 0.85rem;
+  line-height: 1.55;
+  opacity: 0.95;
+  margin-bottom: 0.7em;
+  overflow-wrap: break-word;
+}
+
+.card-expect-box {
+  background: rgba(255,255,255,0.1);
+  border-radius: 12px;
+  padding: 0.6em 0.9em;
+  border: 1px solid rgba(255,255,255,0.15);
+  margin-bottom: 0.7em;
+}
+
+.card-expect {
+  font-size: 0.8rem;
+  line-height: 1.5;
+  opacity: 0.95;
+  overflow-wrap: break-word;
+}
+
+.card-footer {
+  margin-top: auto;
+  font-size: 0.7rem;
+  opacity: 0.6;
+  letter-spacing: 0.02em;
+  padding-top: 0.4em;
+}
+
+.deco-diamond {
+  position: absolute;
+  bottom: -40px;
+  right: -40px;
+  width: 130px;
+  height: 130px;
+  border: 3px solid rgba(255,255,255,0.1);
+  border-radius: 18px;
+  transform: rotate(45deg);
+  pointer-events: none;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.7em;
+}
+
+footer {
+  text-align: center;
+  padding: calc(var(--space) * 1.5) 0 var(--space);
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button { transition: none; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>推し選手メーカー</h1>
+  <p>あなたの贔屓球団にほしい選手を自由に入力して、オリジナルカードを作ろう</p>
+</header>
+
+<div class="maker-layout">
+  <section class="form-section">
+    <div class="form-row">
+      <label for="team-select">贔屓球団 <span class="optional">必須</span></label>
+      <select id="team-select">
+        <option value="">球団を選択</option>
+        <option value="giants">読売ジャイアンツ</option>
+        <option value="tigers">阪神タイガース</option>
+        <option value="dragons">中日ドラゴンズ</option>
+        <option value="swallows">東京ヤクルトスワローズ</option>
+        <option value="carp">広島東洋カープ</option>
+        <option value="baystars">横浜DeNAベイスターズ</option>
+        <option value="hawks">福岡ソフトバンクホークス</option>
+        <option value="orix">オリックス・バファローズ</option>
+        <option value="marines">千葉ロッテマリーンズ</option>
+        <option value="lions">埼玉西武ライオンズ</option>
+        <option value="eagles">東北楽天ゴールデンイーグルス</option>
+        <option value="fighters">北海道日本ハムファイターズ</option>
+      </select>
+    </div>
+
+    <div class="form-row">
+      <label for="player-name">選手名 <span class="optional">必須</span></label>
+      <input type="text" id="player-name" placeholder="例：山田太郎" maxlength="16">
+    </div>
+
+    <div class="form-row">
+      <label for="player-position">ポジション <span class="optional">必須</span></label>
+      <select id="player-position">
+        <option value="">ポジションを選択</option>
+        <option value="先発投手">先発投手</option>
+        <option value="救援投手">救援投手</option>
+        <option value="クローザー">クローザー</option>
+        <option value="捕手">捕手</option>
+        <option value="一塁手">一塁手</option>
+        <option value="二塁手">二塁手</option>
+        <option value="三塁手">三塁手</option>
+        <option value="遊撃手">遊撃手</option>
+        <option value="左翼手">左翼手</option>
+        <option value="中堅手">中堅手</option>
+        <option value="右翼手">右翼手</option>
+        <option value="指名打者">指名打者</option>
+        <option value="ユーティリティ">ユーティリティ</option>
+      </select>
+    </div>
+
+    <div class="form-row">
+      <label for="player-image">選手画像 <span class="optional">必須</span></label>
+      <input type="file" id="player-image" accept="image/*">
+    </div>
+
+    <div class="form-row">
+      <label for="reason-text">獲得したい理由 <span class="optional">必須・80文字以内</span></label>
+      <textarea id="reason-text" maxlength="80" placeholder="この選手を球団にほしい理由を書いてください"></textarea>
+      <div class="char-count"><span id="reason-count">0</span> / 80</div>
+    </div>
+
+    <div class="form-row">
+      <label for="expect-text">期待される活躍 <span class="optional">必須・80文字以内</span></label>
+      <textarea id="expect-text" maxlength="80" placeholder="この選手に期待する活躍を書いてください"></textarea>
+      <div class="char-count"><span id="expect-count">0</span> / 80</div>
+    </div>
+
+    <div class="form-row">
+      <label for="user-name">作成者名 <span class="optional">任意</span></label>
+      <input type="text" id="user-name" placeholder="例：たろう" maxlength="12">
+    </div>
+
+    <button class="btn-primary" id="download-btn" type="button">カード画像を保存</button>
+  </section>
+
+  <section class="preview-section">
+    <div class="preview-label">▼ プレビュー</div>
+    <div id="capture-card">
+      <div class="stitch-line"></div>
+      <div class="deco-diamond"></div>
+      <div class="card-inner">
+        <div class="card-logo-wrap" id="card-logo-wrap">
+          <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" id="card-logo-svg">
+            <circle cx="50" cy="50" r="45" stroke="currentColor" stroke-width="4" fill="none" opacity="0.5"/>
+            <text x="50" y="58" text-anchor="middle" font-size="36" font-weight="900" fill="currentColor" font-family="Arial,sans-serif">⚾</text>
+          </svg>
+        </div>
+        <div class="card-top-badge">MY DREAM PLAYER</div>
+        <div class="card-team-name" id="card-team">球団名</div>
+        <div class="card-subtitle">に今、ほしい選手は…</div>
+
+        <div class="card-image-wrap">
+          <div class="card-image-placeholder" id="image-placeholder">画像を<br>アップ</div>
+          <img id="card-image" src="" alt="" style="display:none;">
+        </div>
+
+        <div class="card-position" id="card-position">POSITION</div>
+        <div class="card-player-name" id="card-player">選手名</div>
+        <div class="card-divider"></div>
+
+        <div class="card-reason-title">獲得したい理由</div>
+        <div class="card-reason" id="card-reason">理由テキスト</div>
+
+        <div class="card-expect-box">
+          <div class="card-expect-title">期待される活躍</div>
+          <div class="card-expect" id="card-expect">活躍テキスト</div>
+        </div>
+
+        <div class="card-footer" id="card-footer">#推し選手メーカー</div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="btn-secondary" id="tweet-btn" type="button">Xシェア</button>
+      <button class="btn-secondary" id="reset-btn" type="button">リセット</button>
+    </div>
+  </section>
+</div>
+
+<footer>
+  推し選手メーカー
+</footer>
+
+<script>
+const teams = {
+  giants:   { name: "読売ジャイアンツ",         colors: ["#000060","#ff9900"], logo: "giants" },
+  tigers:   { name: "阪神タイガース",           colors: ["#ffdd00","#000000"], logo: "tigers" },
+  dragons:  { name: "中日ドラゴンズ",           colors: ["#003595","#ffffff"], logo: "dragons" },
+  swallows: { name: "東京ヤクルトスワローズ",   colors: ["#1a4190","#00a000"], logo: "swallows" },
+  carp:     { name: "広島東洋カープ",           colors: ["#ce0f2c","#ffffff"], logo: "carp" },
+  baystars: { name: "横浜DeNAベイスターズ",     colors: ["#00bfbf","#ffffff"], logo: "baystars" },
+  hawks:    { name: "福岡ソフトバンクホークス", colors: ["#f5c800","#000000"], logo: "hawks" },
+  orix:     { name: "オリックス・バファローズ", colors: ["#000040","#8c8c8c"], logo: "orix" },
+  marines:  { name: "千葉ロッテマリーンズ",     colors: ["#000000","#c0c0c0"], logo: "marines" },
+  lions:    { name: "埼玉西武ライオンズ",       colors: ["#0055a5","#ffffff"], logo: "lions" },
+  eagles:   { name: "東北楽天ゴールデンイーグルス", colors: ["#900000","#ffffff"], logo: "eagles" },
+  fighters: { name: "北海道日本ハムファイターズ", colors: ["#005298","#d7a53a"], logo: "fighters" }
+};
+
+const logos = {
+  giants: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="#ff9900"/><circle cx="50" cy="50" r="38" fill="none" stroke="#000060" stroke-width="5"/><text x="50" y="66" text-anchor="middle" font-size="52" font-weight="900" fill="#000060" font-family="Arial,Helvetica,sans-serif">G</text></svg>`,
+  tigers: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="#000000"/><circle cx="50" cy="50" r="38" fill="none" stroke="#ffdd00" stroke-width="4"/><text x="50" y="62" text-anchor="middle" font-size="46" font-weight="900" fill="#ffdd00" font-family="Arial,Helvetica,sans-serif">H</text><path d="M28 28 L32 24 M72 28 L68 24" stroke="#ffdd00" stroke-width="3" stroke-linecap="round"/></svg>`,
+  dragons: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="#003595"/><circle cx="50" cy="50" r="38" fill="none" stroke="#ffffff" stroke-width="3"/><text x="50" y="66" text-anchor="middle" font-size="50" font-weight="900" fill="#ffffff" font-family="Arial,Helvetica,sans-serif">D</text></svg>`,
+  swallows: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="#1a4190"/><circle cx="50" cy="50" r="38" fill="none" stroke="#00a000" stroke-width="3"/><text x="50" y="64" text-anchor="middle" font-size="46" font-weight="900" fill="#00a000" font-family="Arial,Helvetica,sans-serif">S</text><path d="M50 12 Q55 8 60 12 Q55 16 50 12" fill="#00a000"/></svg>`,
+  carp: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="#ce0f2c"/><circle cx="50" cy="50" r="38" fill="none" stroke="#ffffff" stroke-width="3"/><text x="50" y="66" text-anchor="middle" font-size="50" font-weight="900" fill="#ffffff" font-family="Arial,Helvetica,sans-serif">C</text></svg>`,
+  baystars: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="#00bfbf"/><circle cx="50" cy="50" r="38" fill="none" stroke="#ffffff" stroke-width="3"/><text x="50" y="64" text-anchor="middle" font-size="44" font-weight="900" fill="#ffffff" font-family="Arial,Helvetica,sans-serif">B</text><path d="M30 30 L35 25 M70 30 L65 25" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/></svg>`,
+  hawks: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="#f5c800"/><circle cx="50" cy="50" r="38" fill="none" stroke="#000000" stroke-width="3"/><text x="50" y="64" text-anchor="middle" font-size="46" font-weight="900" fill="#000000" font-family="Arial,Helvetica,sans-serif">H</text><path d="M65 25 Q75 20 80 30" stroke="#000000" stroke-width="3" fill="none" stroke-linecap="round"/></svg>`,
+  orix: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="#000040"/><circle cx="50" cy="50" r="38" fill="none" stroke="#8c8c8c" stroke-width="3"/><text x="50" y="64" text-anchor="middle" font-size="44" font-weight="900" fill="#8c8c8c" font-family="Arial,Helvetica,sans-serif">Bs</text></svg>`,
+  marines: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="#000000"/><circle cx="50" cy="50" r="38" fill="none" stroke="#c0c0c0" stroke-width="3"/><text x="50" y="64" text-anchor="middle" font-size="42" font-weight="900" fill="#c0c0c0" font-family="Arial,Helvetica,sans-serif">M</text></svg>`,
+  lions: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="#0055a5"/><circle cx="50" cy="50" r="38" fill="none" stroke="#ffffff" stroke-width="3"/><text x="50" y="66" text-anchor="middle" font-size="50" font-weight="900" fill="#ffffff" font-family="Arial,Helvetica,sans-serif">L</text></svg>`,
+  eagles: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="#900000"/><circle cx="50" cy="50" r="38" fill="none" stroke="#ffffff" stroke-width="3"/><text x="50" y="64" text-anchor="middle" font-size="44" font-weight="900" fill="#ffffff" font-family="Arial,Helvetica,sans-serif">E</text><path d="M62 22 L72 18 L68 28 Z" fill="#ffffff"/></svg>`,
+  fighters: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="#005298"/><circle cx="50" cy="50" r="38" fill="none" stroke="#d7a53a" stroke-width="3"/><text x="50" y="64" text-anchor="middle" font-size="44" font-weight="900" fill="#d7a53a" font-family="Arial,Helvetica,sans-serif">F</text></svg>`
+};
+
+const els = {
+  team: document.getElementById("team-select"),
+  playerName: document.getElementById("player-name"),
+  position: document.getElementById("player-position"),
+  imageInput: document.getElementById("player-image"),
+  reason: document.getElementById("reason-text"),
+  expect: document.getElementById("expect-text"),
+  userName: document.getElementById("user-name"),
+  cardTeam: document.getElementById("card-team"),
+  cardPosition: document.getElementById("card-position"),
+  cardPlayer: document.getElementById("card-player"),
+  cardReason: document.getElementById("card-reason"),
+  cardExpect: document.getElementById("card-expect"),
+  cardImage: document.getElementById("card-image"),
+  imagePlaceholder: document.getElementById("image-placeholder"),
+  cardFooter: document.getElementById("card-footer"),
+  captureCard: document.getElementById("capture-card"),
+  reasonCount: document.getElementById("reason-count"),
+  expectCount: document.getElementById("expect-count"),
+  logoWrap: document.getElementById("card-logo-wrap"),
+};
+
+function updateCard() {
+  const teamKey = els.team.value;
+  const team = teams[teamKey];
+
+  if (team) {
+    els.cardTeam.textContent = team.name;
+    const c2 = (team.colors[1] === "#ffffff" || team.colors[1] === "#c0c0c0") ? "#2d6e46" : team.colors[1];
+    els.captureCard.style.background = `linear-gradient(135deg, ${team.colors[0]} 0%, ${c2} 100%)`;
+    if (logos[team.logo]) {
+      els.logoWrap.innerHTML = logos[team.logo];
+    }
+  } else {
+    els.cardTeam.textContent = "球団名";
+    els.captureCard.style.background = `linear-gradient(135deg, #1e4f30 0%, #2d6e46 100%)`;
+    els.logoWrap.innerHTML = `<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="45" stroke="currentColor" stroke-width="4" fill="none" opacity="0.5"/><text x="50" y="58" text-anchor="middle" font-size="36" font-weight="900" fill="currentColor" font-family="Arial,sans-serif">⚾</text></svg>`;
+  }
+
+  els.cardPlayer.textContent = els.playerName.value.trim() || "選手名";
+  els.cardPosition.textContent = els.position.value || "POSITION";
+  els.cardReason.textContent = els.reason.value.trim() || "獲得したい理由がここに表示されます";
+  els.cardExpect.textContent = els.expect.value.trim() || "期待される活躍がここに表示されます";
+
+  const name = els.userName.value.trim();
+  els.cardFooter.textContent = name ? `${name}の推し選手カード #推し選手メーカー` : "#推し選手メーカー";
+}
+
+els.team.addEventListener("change", updateCard);
+els.playerName.addEventListener("input", updateCard);
+els.position.addEventListener("change", updateCard);
+els.reason.addEventListener("input", () => {
+  els.reasonCount.textContent = els.reason.value.length;
+  updateCard();
+});
+els.expect.addEventListener("input", () => {
+  els.expectCount.textContent = els.expect.value.length;
+  updateCard();
+});
+els.userName.addEventListener("input", updateCard);
+
+els.imageInput.addEventListener("change", (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    els.cardImage.src = ev.target.result;
+    els.cardImage.style.display = "block";
+    els.imagePlaceholder.style.display = "none";
+  };
+  reader.readAsDataURL(file);
+});
+
+function validate() {
+  if (!els.team.value) return "球団を選択してください";
+  if (!els.playerName.value.trim()) return "選手名を入力してください";
+  if (!els.position.value) return "ポジションを選択してください";
+  if (!els.imageInput.files[0] && els.cardImage.style.display === "none") return "選手画像をアップロードしてください";
+  if (!els.reason.value.trim()) return "獲得したい理由を入力してください";
+  if (!els.expect.value.trim()) return "期待される活躍を入力してください";
+  return null;
+}
+
+document.getElementById("download-btn").addEventListener("click", async () => {
+  const err = validate();
+  if (err) {
+    alert(err);
+    return;
+  }
+  try {
+    const canvas = await html2canvas(els.captureCard, {
+      scale: 3,
+      backgroundColor: null,
+      useCORS: true,
+      logging: false
+    });
+    const link = document.createElement("a");
+    const fileName = els.playerName.value.trim()
+      ? `推し選手_${els.playerName.value.trim()}.png`
+      : "推し選手カード.png";
+    link.download = fileName;
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+  } catch (e) {
+    alert("画像の保存に失敗しました: " + e.message);
+  }
+});
+
+document.getElementById("tweet-btn").addEventListener("click", () => {
+  const err = validate();
+  if (err) {
+    alert(err);
+    return;
+  }
+  const team = teams[els.team.value]?.name || "";
+  const player = els.playerName.value.trim();
+  const name = els.userName.value.trim();
+  const text = encodeURIComponent(
+    `${name ? name + "の" : ""}${team}にほしい選手\n${player}（${els.position.value}）\n\n#推し選手メーカー`
+  );
+  window.open(`https://twitter.com/intent/tweet?text=${text}`, "_blank", "noopener,noreferrer");
+});
+
+document.getElementById("reset-btn").addEventListener("click", () => {
+  els.team.value = "";
+  els.playerName.value = "";
+  els.position.value = "";
+  els.imageInput.value = "";
+  els.reason.value = "";
+  els.expect.value = "";
+  els.userName.value = "";
+  els.reasonCount.textContent = "0";
+  els.expectCount.textContent = "0";
+  els.cardImage.src = "";
+  els.cardImage.style.display = "none";
+  els.imagePlaceholder.style.display = "flex";
+  updateCard();
+});
+
+updateCard();
+</script>
+</body>
+</html>
